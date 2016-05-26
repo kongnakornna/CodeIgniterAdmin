@@ -1,0 +1,20 @@
+<script src="jquery.min.js"></script>
+<script src="jquery.loading-indicator.js"></script>
+<link type="text/css" rel="stylesheet" href="jquery.loading-indicator.css" />
+<div class="jquery-script-clear"></div>
+<script>
+			$(function() {
+				var homeLoader = $('body').loadingIndicator({
+					useImage: false,
+				}).data("loadingIndicator");
+				
+				setTimeout(function() {
+					homeLoader.hide();
+				}, 2500);
+				
+			});
+</script>
+ 
+ 
+	
+ 

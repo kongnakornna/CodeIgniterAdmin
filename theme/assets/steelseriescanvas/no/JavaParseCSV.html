@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+   "http://www.w3.org/TR/1999/REC-html401-19991224/frameset.dtd">
+<html>
+<head>
+<title>- CSV parser -</title>
+</head>
+<body>
+
+<form>
+
+<input type="file" name="F1" id="F1" size="80">
+
+<input type="button" value="Read" name="B1" id="B1" onclick="execFile()">
+ <input type="reset" value="Reset" name="B2" id="B2" onclick="renderArea.innerHTML=''">
+</form>
+<div id="renderArea"></div>
+<script>
+// -- CSV PARSER --
+// author  : Purbayu, 30Sep2008
+// email   : purbayubudi@gmail.com
+//
+// description :
+//  This jscript code describes how to load csv file and parse it into fields.
+//  Additionally, a function to display html table as result is added.
+//
+// disclamer:
+//  To use this code freely, you must put author's name in it.
+
+var renderArea=document.getElementById("renderArea");
+
+function execFile() {
+// main function to open, parse, and then render
+ var myfile=document.getElementById("F1");
+
+ // verify file extension (csv or not)
+ if (myfile.value.match(/\.csv$/gi)==".csv") {
+ // create progress window..
+ var progressWindow = window.open("","","top=10,left=10,height=100,width=200");
+ progressWindow.document.write("<html><head></head><body>
+<div id='progressArea'></div>
+</body></html>");
+ var progressArea = progressWindow.document.getElementById("progressArea");
+
+ // load csv file and split it line by line
+ var arr = readCSV(myfile.value);
+
+ // parse csv line by line
+ for (var i=0;i<arr.length;i++) {
+ arr[i] = parseLineCSV(arr[i]);
+ progressArea.innerHTML="Parsing: "+(i+1)+" of "+arr.length;
+ }
+
+ // render the result into html table
+ s='
+<table border=1>';
+ for (var i=0;i<arr.length;i++) {
+ s=s+'
+<tr>';
+ for (var j=0;j<arr[i].length;j++) {
+ s=s+'
+<td><font size="1" face="Verdana">'+arr[i][j]+'</font></td>
+';
+ }
+ progressArea.innerHTML="Table rendering: "+(i+1)+" of "+arr.length;
+ s=s+'</tr>
+';
+ }
+ s=s+'</table>
+';
+
+ // close progress window after all tasks are completed
+ progressWindow.close();
+ } else {
+ // show this if user tries to open non csv file
+ s='<b><font size="1" face="Verdana" color="#FF0000">Not a CSV file!</font></b>';
+ }
+
+ renderArea.innerHTML=s;
+}
+
+//The following code is depicted from Professional Javascript for
+// Web Developers, a book by Nicholas C.Zakas
+if (typeof XMLHttpRequest == "undefined" && window.ActiveXObject) {
+ function XMLHttpRequest() {
+ var arrSignatures = ["MSXML2.XMLHTTP.5.0", "MSXML2.XMLHTTP.4.0",
+ "MSXML2.XMLHTTP.3.0", "MSXML2.XMLHTTP",
+ "Microsoft.XMLHTTP"];
+ for (var i=0; i < arrSignatures.length; i++) {
+ try {
+ var oRequest = new ActiveXObject(arrSignatures[i]);
+ return oRequest;
+ } catch (oError) {
+ //ignore
+ }
+ }
+ throw new Error("MSXML is not installed on your system.");
+ }
+}
+
+function readCSV(locfile) {
+// load a whole csv file, and then split it line by line
+ var req = new XMLHttpRequest();
+ req.open("POST",locfile,false);
+ req.send("");
+ return req.responseText.split(/\n/g);
+}
+
+function parseLineCSV(lineCSV) {
+// parse csv line by line into array
+ var CSV = new Array();
+
+ // Insert space before character ",". This is to anticipate 'split' in IE
+ // try this:
+ //
+ // var a=",,,a,,b,,c,,,,d";
+ // a=a.split(/\,/g);
+ // document.write(a.length);
+ //
+ // You will see unexpected result!
+ //
+ lineCSV = lineCSV.replace(/,/g," ,");
+
+ lineCSV = lineCSV.split(/,/g);
+
+ // This is continuing of 'split' issue in IE
+ // remove all trailing space in each field
+ for (var i=0;i
+	<lineCSV.length;i++) {
+ lineCSV[i] = lineCSV[i].replace(/\s*$/g,"");
+ }
+
+ lineCSV[lineCSV.length-1]=lineCSV[lineCSV.length-1].replace(/^\s*|\s*$/g,"");
+ var fstart = -1;
+
+ for (var i=0;i<lineCSV.length;i++) {
+ if (lineCSV[i].match(/"$/)) {
+ if (fstart>=0) {
+ for (var j=fstart+1;j<=i;j++) {
+ lineCSV[fstart]=lineCSV[fstart]+","+lineCSV[j];
+ lineCSV[j]="-DELETED-";
+ }
+ fstart=-1;
+ }
+ }
+ fstart = (lineCSV[i].match(/^"/)) ? i : fstart;
+ }
+
+ var j=0;
+
+ for (var i=0;i
+	<lineCSV.length;i++) {
+ if (lineCSV[i]!="-DELETED-") {
+ CSV[j] = lineCSV[i];
+ CSV[j] = CSV[j].replace(/^\s*|\s*$/g,"");     // remove leading & trailing space
+ CSV[j] = CSV[j].replace(/^"|"$/g,"");         // remove " on the beginning and end
+ CSV[j] = CSV[j].replace(/""/g,'"');           // replace "" with "
+ j++;
+ }
+ }
+
+ return CSV;
+}
+
+</script>
+
+</body>
+</html>
